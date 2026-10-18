@@ -1,0 +1,16 @@
+{
+  "name": "Second Brain",
+  "short_name": "Second Brain",
+  "description": "Your personal study companion: notes, reminders, quizzes and voice.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12142E",
+  "theme_color": "#12142E",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

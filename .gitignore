@@ -1,0 +1,10 @@
+# Secrets and personal data: never upload these
+.env
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
