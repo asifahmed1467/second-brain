@@ -1,0 +1,8 @@
+# Facts about you, used only by the optional Python/Claude version in this folder.
+# One fact per line. The bot imports these every time it starts.
+# Keep personal details out of a public repository: fill this in on your own computer only.
+
+Name is [fill in]
+University and year: [fill in]
+Department / major: [fill in]
+Prefers short, simple explanations with examples

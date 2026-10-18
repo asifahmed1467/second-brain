@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Second Brain</title>
+<meta name="theme-color" content="#12142E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Second Brain">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700;800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F4FA; --surface:#FFFFFF; --surface-2:#E9EBF6; --ink:#1B1E3F; --ink-2:#565A7A; --ink-3:#8A8EAD; --line:#DFE1EF;
+  --accent:#4B4FD6; --accent-ink:#FFFFFF; --accent-soft:#E4E5FB; --saffron:#E8961A; --saffron-soft:#FCEFD9;
+  --mint:#3BAE8E; --mint-soft:#DDF4EC; --danger:#C2453A; --me:#2C2F7A; --me-ink:#FFFFFF;
+  --night-1:#0E1030; --night-2:#23275E;
+  --display:"Baloo Da 2",system-ui,sans-serif; --text:"Hind Siliguri",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --top:env(safe-area-inset-top,0px); --bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12142E; --surface:#1C1F45; --surface-2:#262A58; --ink:#ECEEFF; --ink-2:#A6AAD0; --ink-3:#757AA6; --line:#2C3060;
+    --accent:#8F93FF; --accent-ink:#12142E; --accent-soft:#2A2E66; --saffron:#FFB547; --saffron-soft:#3A3020;
+    --mint:#7EE0C3; --mint-soft:#1E3A3F; --danger:#FF8A7A; --me:#4B4FD6; --me-ink:#FFFFFF;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12142E; --surface:#1C1F45; --surface-2:#262A58; --ink:#ECEEFF; --ink-2:#A6AAD0; --ink-3:#757AA6; --line:#2C3060;
+  --accent:#8F93FF; --accent-ink:#12142E; --accent-soft:#2A2E66; --saffron:#FFB547; --saffron-soft:#3A3020;
+  --mint:#7EE0C3; --mint-soft:#1E3A3F; --danger:#FF8A7A; --me:#4B4FD6; --me-ink:#FFFFFF;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto;background:var(--bg);position:relative}
+
+/* ── header (sits on the night sky) ── */
+.top{display:flex;align-items:center;gap:10px;padding:calc(var(--top) + 10px) 14px 6px;background:var(--night-1);color:#ECEEFF}
+.who{flex:1;min-width:0}
+.who h1{margin:0;font-family:var(--display);font-weight:700;font-size:21px;line-height:1.1}
+.who p{margin:1px 0 0;font-size:13.5px;color:#A6AAD0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#A6AAD0}
+.icon-btn:active{background:rgba(255,255,255,.08)}
+.icon-btn.on{color:#FFB547;background:rgba(255,181,71,.14)}
+
+/* ── the sky scene ── */
+.sky{position:relative;height:240px;flex:none;background:linear-gradient(180deg,var(--night-1) 0%,var(--night-2) 100%);border-radius:0 0 28px 28px;overflow:hidden;transition:height .45s cubic-bezier(.3,.7,.2,1)}
+.sky.compact{height:118px}
+.sky.tall{height:250px}
+.sky.gone{display:none}
+.sky svg.scene{position:absolute;inset:0;width:100%;height:100%}
+.aurora{position:absolute;inset:-40% -20% auto;height:120%;background:radial-gradient(40% 35% at 30% 60%,rgba(126,224,195,.16),transparent 70%),radial-gradient(35% 30% at 75% 40%,rgba(143,147,255,.18),transparent 70%);animation:drift 18s ease-in-out infinite alternate;pointer-events:none}
+@keyframes drift{to{transform:translate3d(6%,4%,0) scale(1.08)}}
+.levelbar{position:absolute;left:16px;right:16px;bottom:12px;display:flex;align-items:center;gap:10px;color:#ECEEFF;font-size:13px}
+.levelbar b{font-family:var(--display);font-weight:700;font-size:15px;white-space:nowrap}
+.levelbar .track{flex:1;height:6px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
+.levelbar .fill{height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,#7EE0C3,#FFB547);transition:width .9s cubic-bezier(.3,.7,.2,1)}
+.levelbar span{color:#A6AAD0;white-space:nowrap}
+.sky.compact .levelbar span{display:none}
+.sky.compact .levelbar{right:calc(50% + 46px);bottom:14px}
+.say{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-family:var(--display);font-weight:700;color:#FFB547;font-size:15px;opacity:0;pointer-events:none;white-space:nowrap}
+.say.go{animation:rise 1.4s ease-out}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,10px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-14px)}}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,rgba(255,181,71,.45),transparent 60%);opacity:0;pointer-events:none}
+.flash.go{animation:flash 1.2s ease-out}
+@keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.flyer{position:fixed;width:10px;height:10px;border-radius:50%;background:#FFB547;box-shadow:0 0 12px 4px rgba(255,181,71,.7);pointer-events:none;z-index:40}
+
+/* stars */
+.star{transform-box:fill-box;transform-origin:center}
+.star.tw{animation:twinkle var(--d,3s) ease-in-out var(--delay,0s) infinite}
+@keyframes twinkle{0%,100%{opacity:var(--o,.5)}50%{opacity:calc(var(--o,.5) * .55)}}
+.star.new{animation:born 1s ease-out}
+@keyframes born{0%{transform:scale(0)}60%{transform:scale(2.2)}100%{transform:scale(1)}}
+.link{stroke:#FFB547;stroke-width:.6;opacity:.35;stroke-dasharray:2 3}
+
+/* the companion */
+.buddy{transform-box:fill-box;transform-origin:50% 100%}
+.buddy .float{animation:float 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes float{50%{transform:translateY(-5px)}}
+.buddy .eye{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.buddy .pupil{transition:transform .4s}
+.buddy .mouth{transform-box:fill-box;transform-origin:center;transition:transform .2s}
+.buddy .tip{transition:fill .3s}
+.buddy .rings circle{opacity:0;transform-box:fill-box;transform-origin:center}
+.buddy .orbit{opacity:0;transform-box:view-box;transition:opacity .3s}
+.buddy .shadow{transform-box:fill-box;transform-origin:center;animation:shadow 4s ease-in-out infinite}
+@keyframes shadow{50%{transform:scaleX(.85);opacity:.5}}
+/* moods */
+.sky[data-mood="listening"] .rings circle{animation:ring 1.6s ease-out infinite}
+.sky[data-mood="listening"] .rings circle:nth-child(2){animation-delay:.5s}
+.sky[data-mood="listening"] .rings circle:nth-child(3){animation-delay:1s}
+@keyframes ring{0%{opacity:.7;transform:scale(.8)}100%{opacity:0;transform:scale(1.7)}}
+.sky[data-mood="listening"] .pupil{transform:translateY(1px)}
+.sky[data-mood="thinking"] .pupil{transform:translate(2px,-3px)}
+.sky[data-mood="thinking"] .orbit{opacity:1;animation:spin 1.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sky[data-mood="thinking"] .tip{fill:#8F93FF}
+.sky[data-mood="speaking"] .mouth{animation:talk .28s ease-in-out infinite alternate}
+@keyframes talk{from{transform:scaleY(.4)}to{transform:scaleY(1.6)}}
+.sky[data-mood="learning"] .tip{fill:#FFB547}
+.sky[data-mood="learning"] .float{animation:hop .6s ease-out 2}
+@keyframes hop{40%{transform:translateY(-12px)}}
+.sky[data-mood="learning"] .cheek{opacity:.9}
+.sky[data-mood="happy"] .float{animation:hop .5s ease-out 3}
+.sky[data-mood="happy"] .eye{animation:none;transform:scaleY(.55)}
+
+/* ── views ── */
+.views{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow-y:auto;padding:18px 16px;display:none}
+.view.active{display:block;animation:viewIn .25s ease-out}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#chat.active{display:flex;flex-direction:column;padding:0}
+
+/* ── chat ── */
+.thread{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;padding:10px 14px;border-radius:20px;line-height:1.55;font-size:15.5px;white-space:pre-wrap;word-wrap:break-word;animation:msgIn .22s ease-out}
+.msg.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg.me{align-self:flex-end;background:var(--me);color:var(--me-ink);border-bottom-right-radius:6px}
+.msg.me.teach{background:var(--saffron);color:#2A1C05}
+.msg.learned{border-color:var(--saffron);background:var(--saffron-soft)}
+.msg.err{border-color:var(--danger);color:var(--danger)}
+.msg .tools{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.msg .tools button{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--ink-2);padding:3px 10px 3px 7px;border-radius:999px;background:var(--surface-2)}
+.msg .tools .ico{width:15px;height:15px}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.hello{margin:auto 2px 6px}
+.hello h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.15;margin:0 0 6px}
+.hello p{margin:0 0 16px;color:var(--ink-2);font-size:15px;line-height:1.55;max-width:34ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14.5px;font-weight:500}
+.chip.teachy{border-color:var(--saffron);color:var(--ink)}
+.chip:active{background:var(--surface-2)}
+
+/* ── composer ── */
+.composer{padding:6px 10px 10px;border-top:1px solid var(--line);background:var(--bg)}
+.modes{display:flex;gap:4px;margin:0 0 6px 50px;background:var(--surface-2);border-radius:999px;padding:3px;width:max-content}
+.modes button{padding:4px 14px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--ink-2);transition:background .2s,color .2s}
+.modes button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(20,22,60,.12)}
+.modes button.t[aria-pressed="true"]{background:var(--saffron);color:#2A1C05}
+.bar{display:flex;align-items:flex-end;gap:6px}
+.field{flex:1;display:flex;align-items:flex-end;background:var(--surface);border:1.5px solid var(--line);border-radius:24px;padding:3px 3px 3px 14px;min-height:46px;transition:border-color .2s}
+.composer.teaching .field{border-color:var(--saffron)}
+.field textarea{flex:1;border:0;outline:0;background:transparent;resize:none;max-height:120px;padding:9px 0;line-height:1.45;font-size:16px}
+.field textarea::placeholder{color:var(--ink-3)}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);flex:none}
+.round.small{width:38px;height:38px}
+.round:active{background:var(--surface-2)}
+.send{background:var(--accent);color:var(--accent-ink)}
+.composer.teaching .send{background:var(--saffron);color:#2A1C05}
+.send:disabled{opacity:.4}
+.mic.listening{background:var(--danger);color:#fff}
+
+/* ── lists ── */
+.title{font-family:var(--display);font-weight:700;font-size:25px;margin:0 0 2px}
+.sub{color:var(--ink-2);font-size:14.5px;margin:0 0 16px;line-height:1.5}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.item{display:flex;align-items:flex-start;gap:12px;padding:12px 12px 12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.item .dot{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;margin-top:1px}
+.dot.sf{background:var(--saffron-soft);color:var(--saffron)}
+.dot.mt{background:var(--mint-soft);color:var(--mint)}
+.dot.ac{background:var(--accent-soft);color:var(--accent)}
+.item .txt{flex:1;min-width:0}
+.item .t1{font-weight:600;font-size:15px;line-height:1.4}
+.item .t2{font-size:14px;color:var(--ink-2);margin-top:2px;line-height:1.45}
+.item .t2.clamp{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.x{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--ink-3);flex:none}
+.x:active{background:var(--surface-2);color:var(--danger)}
+.empty{padding:26px 12px;text-align:center;color:var(--ink-3);font-size:14.5px;line-height:1.5}
+.add{display:flex;gap:8px;margin-bottom:16px}
+.input{flex:1;min-width:0;height:46px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);padding:0 14px;outline:0;font-size:16px}
+.input:focus{border-color:var(--accent)}
+textarea.input{height:auto;min-height:92px;padding:12px 14px;resize:vertical;line-height:1.5}
+.btn{height:46px;padding:0 18px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:15px;white-space:nowrap}
+.btn.sf{background:var(--saffron);color:#2A1C05}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line);height:36px;padding:0 14px;font-size:14px}
+.btn:active{opacity:.85}
+.teachbox{background:var(--surface);border:1.5px solid var(--saffron);border-radius:18px;padding:12px;margin-bottom:22px}
+.teachbox textarea{border:0;min-height:80px;padding:4px 2px}
+.teachbox .row2{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+.teachbox small{color:var(--ink-2);font-size:13px;line-height:1.4}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}
+.stat{padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.stat b{display:block;font-family:var(--display);font-size:24px;font-weight:700;line-height:1.1}
+.stat span{font-size:13px;color:var(--ink-2)}
+.settings{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:8px 0 22px}
+.setting{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.setting:last-child{border-bottom:0}
+.setting .txt{flex:1}
+.setting .t1{font-weight:600;font-size:15px}
+.setting .t2{font-size:13.5px;color:var(--ink-2)}
+.toggle{width:48px;height:28px;border-radius:999px;background:var(--surface-2);position:relative;transition:background .2s;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.toggle.on{background:var(--accent)}
+.toggle.on::after{transform:translateX(20px)}
+select{height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 8px;font-size:14px}
+h3.mini{font-family:var(--display);font-weight:700;font-size:19px;margin:0 0 8px}
+
+/* ── tabs ── */
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--bg);padding-bottom:var(--bottom)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 7px;font-size:12px;font-weight:600;color:var(--ink-3);position:relative}
+.tab.active{color:var(--accent)}
+.tab[data-view="teach"].active{color:var(--saffron)}
+.tab .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 5px;border-radius:999px;background:var(--saffron);color:#2A1C05;font-size:10.5px;font-weight:700;display:none;place-items:center}
+.tab .badge.show{display:grid}
+
+/* ── sheets, toast ── */
+.scrim{position:fixed;inset:0;background:rgba(8,10,30,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.scrim.show{display:flex}
+.sheet{width:100%;max-width:560px;background:var(--surface);border-radius:24px 24px 0 0;padding:10px 16px calc(var(--bottom) + 16px);animation:up .25s cubic-bezier(.3,.7,.2,1)}
+.sheet .grab{width:38px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 14px}
+.sheet h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0 0 4px}
+.sheet p{color:var(--ink-2);font-size:14.5px;margin:0 0 12px;line-height:1.5}
+.opt{display:flex;align-items:center;gap:14px;width:100%;padding:12px 2px;border-bottom:1px solid var(--line);font-weight:600;text-align:left}
+.opt:last-of-type{border-bottom:0}
+.opt small{display:block;font-weight:400;color:var(--ink-2);font-size:13.5px}
+@keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:none;opacity:1}}
+.toast{position:fixed;left:50%;top:calc(var(--top) + 12px);transform:translate(-50%,-160%);max-width:calc(100% - 32px);background:#ECEEFF;color:#12142E;padding:11px 16px;border-radius:14px;font-size:14.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.3,.7,.2,1);z-index:30}
+.toast.show{transform:translate(-50%,0)}
+.hidden{display:none!important}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+.setup .field2{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.setup label{font-weight:600;font-size:14px}
+.setup .hint{font-size:13px;color:var(--ink-2);line-height:1.45}
+.setup a{color:var(--accent);font-weight:600}
+.setup .err{color:var(--danger);font-size:14px;min-height:1em;margin:0 0 8px}
+.sheet.setup{max-height:92dvh;overflow-y:auto}
+.privacy{font-size:12.5px;color:var(--ink-3);line-height:1.45;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="who">
+      <h1>Second Brain</h1>
+      <p id="subtitle">Your study companion</p>
+    </div>
+    <button class="icon-btn" id="speakToggle" aria-label="Read replies aloud" title="Read replies aloud">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path id="waves" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+    </button>
+    <button class="icon-btn" id="briefingBtn" aria-label="Morning briefing" title="Morning briefing">
+      <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </header>
+
+  <!-- THE SKY: every star is something you taught -->
+  <div class="sky" id="sky" data-mood="idle" aria-label="Your companion's sky. Each bright star is something you taught it.">
+    <div class="aurora"></div>
+    <svg class="scene" id="scene" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid meet">
+      <g id="ambient"></g>
+      <g id="links"></g>
+      <g id="stars"></g>
+      <!-- companion: an original character -->
+      <g class="buddy" id="buddy" transform="translate(180 128)">
+        <ellipse class="shadow" cx="0" cy="40" rx="26" ry="5" fill="#000" opacity=".35"/>
+        <g class="rings" fill="none" stroke="#7EE0C3" stroke-width="1.5">
+          <circle r="34"/><circle r="34"/><circle r="34"/>
+        </g>
+        <g class="float">
+          <g class="orbit">
+            <circle cx="0" cy="-48" r="3" fill="#8F93FF"/><circle cx="41" cy="24" r="2.5" fill="#7EE0C3"/><circle cx="-41" cy="24" r="2" fill="#FFB547"/>
+          </g>
+          <!-- sprouts -->
+          <path d="M-10 -26 Q-16 -40 -20 -44" stroke="#49B99A" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M10 -26 Q16 -40 20 -44" stroke="#49B99A" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <circle class="tip" cx="-20" cy="-45" r="4.5" fill="#7EE0C3"/>
+          <circle class="tip" cx="20" cy="-45" r="4.5" fill="#7EE0C3"/>
+          <!-- body -->
+          <defs>
+            <radialGradient id="bodyG" cx="38%" cy="30%" r="75%">
+              <stop offset="0" stop-color="#B8F3E1"/><stop offset=".55" stop-color="#7EE0C3"/><stop offset="1" stop-color="#3FA98A"/>
+            </radialGradient>
+            <radialGradient id="glowG"><stop offset="0" stop-color="#7EE0C3" stop-opacity=".45"/><stop offset="1" stop-color="#7EE0C3" stop-opacity="0"/></radialGradient>
+          </defs>
+          <circle r="52" fill="url(#glowG)"/>
+          <path d="M0 -32 C22 -32 34 -16 34 4 C34 24 20 36 0 36 C-20 36 -34 24 -34 4 C-34 -16 -22 -32 0 -32Z" fill="url(#bodyG)"/>
+          <!-- face -->
+          <ellipse class="cheek" cx="-19" cy="10" rx="5" ry="3" fill="#FF9E8A" opacity=".55"/>
+          <ellipse class="cheek" cx="19" cy="10" rx="5" ry="3" fill="#FF9E8A" opacity=".55"/>
+          <g class="eye"><ellipse cx="-11" cy="-2" rx="7.5" ry="9" fill="#fff"/><g class="pupil"><circle cx="-10" cy="0" r="4.2" fill="#12142E"/><circle cx="-8.6" cy="-1.6" r="1.4" fill="#fff"/></g></g>
+          <g class="eye"><ellipse cx="11" cy="-2" rx="7.5" ry="9" fill="#fff"/><g class="pupil"><circle cx="12" cy="0" r="4.2" fill="#12142E"/><circle cx="13.4" cy="-1.6" r="1.4" fill="#fff"/></g></g>
+          <ellipse class="mouth" cx="0" cy="15" rx="5" ry="2.6" fill="#12142E"/>
+        </g>
+      </g>
+    </svg>
+    <div class="flash" id="flash"></div>
+    <div class="say" id="say"></div>
+    <div class="levelbar"><b id="lvl">Level 1</b><div class="track"><div class="fill" id="lvlFill"></div></div><span id="lvlNext">Teach me to grow</span></div>
+  </div>
+
+  <main class="views">
+    <!-- CHAT -->
+    <section class="view active" id="chat">
+      <div class="thread" id="thread">
+        <div class="hello" id="hello">
+          <h2 id="helloTitle">Hello! Ask me, or teach me.</h2>
+          <p>Every fact you teach me becomes a star in my sky, and I'll remember it forever.</p>
+          <div class="chips">
+            <button class="chip teachy" data-teach="">Teach me something</button>
+            <button class="chip" data-say="What's due this week?">What's due this week?</button>
+            <button class="chip" data-say="Quiz me on what I taught you">Quiz me on what I taught you</button>
+            <button class="chip" data-say="Make me a study plan for this week">Plan my study week</button>
+          </div>
+        </div>
+      </div>
+      <form class="composer" id="composer">
+        <div class="modes" role="group" aria-label="Message mode">
+          <button type="button" class="a" aria-pressed="true" id="modeAsk">Ask</button>
+          <button type="button" class="t" aria-pressed="false" id="modeTeach">Teach</button>
+        </div>
+        <div class="bar">
+          <button type="button" class="round" id="attachBtn" aria-label="Add a photo or file">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <div class="field">
+            <textarea id="input" rows="1" placeholder="Ask me anything" enterkeyhint="send"></textarea>
+            <button type="button" class="round small mic" id="micBtn" aria-label="Speak your message">
+              <svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="round send" id="sendBtn" aria-label="Send" disabled>
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TEACH -->
+    <section class="view" id="teach">
+      <h2 class="title">Train your brain</h2>
+      <p class="sub">Type or paste anything: facts, rules, formulas, room numbers, a whole FAQ. I'll pick out each idea and learn it.</p>
+      <form class="teachbox" id="teachForm">
+        <textarea class="input" id="teachInput" placeholder="e.g. The CSE office is in Annex 4, room 402. Compiler Design midterm is open book."></textarea>
+        <div class="row2"><small>Tip: in chat, switch to Teach or tap “Correct this” under any answer.</small><button class="btn sf">Teach</button></div>
+      </form>
+      <div class="add">
+        <input class="input" id="knowQ" type="search" placeholder="Search what you taught" autocomplete="off">
+      </div>
+      <div class="list" id="knowList"></div>
+    </section>
+
+    <!-- REMINDERS -->
+    <section class="view" id="reminders">
+      <h2 class="title">Reminders</h2>
+      <p class="sub">Write it the way you'd say it, like “Pay hostel fee on the 5th at 10am”.</p>
+      <form class="add" id="remForm">
+        <input class="input" id="remInput" placeholder="Remind me to…" autocomplete="off">
+        <button class="btn">Add</button>
+      </form>
+      <div class="list" id="remList"></div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="view" id="notes">
+      <h2 class="title">Notes</h2>
+      <p class="sub">Typed notes, PDFs and notebook photos you've saved. Tap one to revise it.</p>
+      <form class="add" id="noteSearch">
+        <input class="input" id="noteQ" type="search" placeholder="Search your notes" autocomplete="off">
+        <button type="button" class="btn" id="noteAdd">Upload</button>
+      </form>
+      <div class="list" id="noteList"></div>
+    </section>
+
+    <!-- ME -->
+    <section class="view" id="me">
+      <h2 class="title">About you</h2>
+      <p class="sub">I read these before every reply, so my answers fit you.</p>
+      <form class="add" id="factForm">
+        <input class="input" id="factInput" placeholder="e.g. I'm in CSE, thesis on Bangla NLP" autocomplete="off">
+        <button class="btn">Save</button>
+      </form>
+      <div class="list" id="factList"></div>
+      <div class="stats">
+        <div class="stat"><b id="statTaught">0</b><span>taught</span></div>
+        <div class="stat"><b id="statNotes">0</b><span>notes</span></div>
+        <div class="stat"><b id="statSpend">0</b><span>spent, 30 days</span></div>
+      </div>
+      <h3 class="mini">Settings</h3>
+      <div class="settings">
+        <div class="setting"><div class="txt"><div class="t1">Read replies aloud</div><div class="t2">Every answer in a voice</div></div><button class="toggle" id="speakSwitch" aria-label="Read replies aloud"></button></div>
+        <div class="setting"><div class="txt"><div class="t1">Mic language</div><div class="t2">For voice typing</div></div>
+          <select id="micLang"><option value="en-US">English</option><option value="bn-BD">বাংলা</option></select></div>
+        <div class="setting"><div class="txt"><div class="t1">Reminder alerts</div><div class="t2" id="notifState">Pop up while the app is open</div></div><button class="btn ghost" id="notifBtn">Allow</button></div>
+        <div class="setting"><div class="txt"><div class="t1">Weekly review</div><div class="t2">What you studied, spent, and what's next</div></div><button class="btn ghost" id="reviewBtn">Open</button></div>
+        <div class="setting"><div class="txt"><div class="t1">New conversation</div><div class="t2">Clears chat memory. Keeps everything taught.</div></div><button class="btn ghost" id="resetBtn">Clear</button></div>
+        <div class="setting"><div class="txt"><div class="t1">Name, key and AI model</div><div class="t2" id="modelState">Free Google Gemini</div></div><button class="btn ghost" id="setupBtn">Edit</button></div>
+        <div class="setting"><div class="txt"><div class="t1">Back up my brain</div><div class="t2">Everything lives on this phone. Save a copy now and then.</div></div><button class="btn ghost" id="backupBtn">Save</button></div>
+        <div class="setting"><div class="txt"><div class="t1">Restore a backup</div><div class="t2">Replaces what's on this phone with the file</div></div><button class="btn ghost" id="restoreBtn">Open</button></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="chat"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat</button>
+    <button class="tab" data-view="teach"><svg class="ico" viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>Teach</button>
+    <button class="tab" data-view="reminders"><svg class="ico" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Reminders<span class="badge" id="remBadge"></span></button>
+    <button class="tab" data-view="notes"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Notes</button>
+    <button class="tab" data-view="me"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Me</button>
+  </nav>
+</div>
+
+<!-- add sheet -->
+<div class="scrim" id="attachSheet">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Add to your notes</h3>
+    <p>I'll read it and save it, then you can ask me about it anytime.</p>
+    <button class="opt" data-pick="camera"><span class="dot mt" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center"><svg class="ico" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span>Take a photo<small>Notebook page, whiteboard, notice board</small></span></button>
+    <button class="opt" data-pick="photo"><span class="dot mt" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><span>Choose a photo<small>From your gallery</small></span></button>
+    <button class="opt" data-pick="file"><span class="dot sf" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><span>Upload a file<small>PDF slides, .txt or .md notes</small></span></button>
+  </div>
+</div>
+<input type="file" id="pickCamera" accept="image/*" capture="environment" class="hidden">
+<input type="file" id="pickPhoto" accept="image/*" class="hidden">
+<input type="file" id="pickFile" accept=".pdf,.txt,.md,.csv,application/pdf,text/plain" class="hidden">
+
+<!-- setup sheet -->
+<div class="scrim" id="setupSheet">
+  <form class="sheet setup" id="setupForm">
+    <div class="grab"></div>
+    <h3>Set up your Second Brain</h3>
+    <p>It's free. I run on Google Gemini with your own free key, and everything you save stays on this phone.</p>
+    <div class="field2"><label for="sName">Your name</label><input class="input" id="sName" placeholder="Asif Ahmed" autocomplete="name"></div>
+    <div class="field2"><label for="sAbout">About you <span class="hint">(optional)</span></label><input class="input" id="sAbout" placeholder="Final-year CSE student at AIUB"></div>
+    <div class="field2"><label for="sKey">Gemini API key</label><input class="input" id="sKey" placeholder="Paste your key (starts with AIza)" autocomplete="off" spellcheck="false">
+      <span class="hint">Get one free at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. No card needed. It's saved only on this phone.</span></div>
+    <div class="field2"><label for="sModel">AI model</label><input class="input" id="sModel" list="models" value="gemini-2.5-flash" spellcheck="false">
+      <datalist id="models"><option value="gemini-2.5-flash"><option value="gemini-2.5-flash-lite"></datalist>
+      <span class="hint">If you hit the free limit often, use gemini-2.5-flash-lite.</span></div>
+    <div class="field2"><label for="sCurrency">Currency symbol</label><input class="input" id="sCurrency" value="৳" maxlength="4" style="max-width:120px"></div>
+    <p class="err" id="setupErr"></p>
+    <button class="btn" id="setupSave" style="width:100%">Save and start</button>
+    <p class="privacy">Your messages are sent to Google to get answers. On Gemini's free plan Google may use them to improve its products, so don't share passwords or very private details.</p>
+  </form>
+</div>
+<input type="file" id="pickBackup" accept=".json,application/json" class="hidden">
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="brain.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
