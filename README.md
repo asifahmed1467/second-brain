@@ -45,7 +45,8 @@ Open the address in **Chrome** on your phone, enter your name and the Gemini key
 
 ## Good to know
 - **Your data is on your phone.** Use **Me → Back up my brain** now and then. Uninstalling the app or clearing Chrome's data erases it, and the backup lets you restore it.
-- **Free limit:** if Google says you've hit the free limit, wait a minute or switch the model to `gemini-2.5-flash-lite` in **Me → Settings**.
+- **Free limit:** if Google says you've hit the free limit, wait a minute or switch the model to `gemini-3.5-flash-lite` in **Me → Settings**.
+- **AI model:** leave the default (`gemini-3.8-flash`). If your key can't use it, the app automatically switches to the best model your key can use.
 - **Privacy:** on Gemini's free plan Google may use your messages to improve its products. Don't send passwords or very private details.
 - **Reminders** pop up while the app is open.
 - **Bangla voice:** the phone reads Bangla aloud if its text-to-speech has Bangla installed (Settings → Google text-to-speech → Install voice data → Bangla).

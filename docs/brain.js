@@ -14,7 +14,7 @@ const Brain = (() => {
   };
   const settings = {
     get key() { return S.get("gemini_key", ""); },
-    get model() { return S.get("model", "gemini-2.5-flash"); },
+    get model() { return S.get("model", "gemini-3.8-flash"); },
     get name() { return S.get("name", ""); },
     get currency() { return S.get("currency", "৳"); },
   };
@@ -265,13 +265,47 @@ How to behave:
   // ───────────────────────────── Gemini ─────────────────────────────
   class NeedKey extends Error { constructor() { super("Add your free Gemini key to start (Me tab, then Settings)."); this.needKey = true; } }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const DEFAULT_MODEL = "gemini-3.8-flash";
+  const LITE_MODEL = "gemini-3.5-flash-lite";
   function genConfig() {
-    const c = { temperature: 0.6, maxOutputTokens: 2048 };
-    if (/^gemini-2\.5-flash/.test(settings.model)) c.thinkingConfig = { thinkingBudget: 0 }; // faster, saves free quota
-    return c;
+    // newer Gemini models think before answering: give room for that, and keep their default temperature
+    if (/^gemini-2\.5-flash/.test(settings.model)) return { temperature: 0.6, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } };
+    return { maxOutputTokens: 8192 };
   }
+
+  // Ask Google which models this key can use, and pick the best one.
+  async function availableModels(key) {
+    try {
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", { headers: { "x-goog-api-key": key } });
+      if (!r.ok) return [];
+      const j = await r.json();
+      return (j.models || []).filter((m) => (m.supportedGenerationMethods || []).includes("generateContent")).map((m) => m.name.replace(/^models\//, ""));
+    } catch { return []; }
+  }
+  function bestModel(names, lite = false) {
+    const ok = names.filter((n) => /^gemini-[\d.]+-flash/.test(n) && !/(image|tts|live|audio|native|embedding|robotics|transcribe|translate|thinking)/.test(n) && lite === /lite/.test(n));
+    const version = (n) => parseFloat((n.match(/^gemini-([\d.]+)/) || [])[1] || 0);
+    const preview = (n) => (/(preview|exp)/.test(n) ? 1 : 0);
+    ok.sort((a, b) => preview(a) - preview(b) || version(b) - version(a) || a.length - b.length);
+    return ok[0] || null;
+  }
+  const modelProblem = (status, msg) => status === 404 || (/model/i.test(msg) && /(not found|not available|no longer|not supported|unsupported|deprecated)/i.test(msg));
+
   async function gemini(body, key = settings.key, model = settings.model) {
     if (!key) throw new NeedKey();
+    try { return await callGemini(body, key, model); }
+    catch (e) {
+      if (!e.modelProblem) throw e;
+      // the chosen model isn't available for this key: switch to the best one it can use, once
+      const pick = bestModel(await availableModels(key)) || bestModel(await availableModels(key), true);
+      if (!pick || pick === model) throw new Error(`The model "${model}" isn't available for your key. In Me, then Settings, try ${DEFAULT_MODEL} or ${LITE_MODEL}.`);
+      if (key === settings.key) S.set("model", pick);
+      const r = await callGemini(body, key, pick);
+      r._model = pick;
+      return r;
+    }
+  }
+  async function callGemini(body, key, model) {
     for (let attempt = 0; attempt < 2; attempt++) {
       let res;
       try {
@@ -290,20 +324,21 @@ How to behave:
         const secs = retry ? parseFloat(retry) : 0;
         if (attempt === 0 && secs && secs <= 30) { await sleep(secs * 1000 + 500); continue; }
         throw new Error(secs ? `I've hit Google's free limit. Try again in about ${Math.ceil(secs)} seconds.` :
-          "I've used up Google's free limit for now. Try again later, or switch to gemini-2.5-flash-lite in Settings (it has a bigger free allowance).");
+          `I've used up Google's free limit for now. Try again later, or switch to ${LITE_MODEL} in Me, then Settings (it has a bigger free allowance).`);
       }
       if (res.status === 400 && /api key/i.test(msg)) throw new Error("Your Gemini key isn't valid. Check it in Me, then Settings.");
+      if (modelProblem(res.status, msg)) { const e = new Error(`The model "${model}" isn't available.`); e.modelProblem = true; throw e; }
       if (res.status === 403) throw new Error("Google refused the request: " + (msg || "check your key in Me, then Settings."));
-      if (res.status === 404) throw new Error(`The model "${model}" isn't available. Pick another one in Me, then Settings.`);
       if (res.status >= 500 && attempt === 0) { await sleep(1500); continue; }
       throw new Error(`Gemini error ${res.status}: ${msg || "please try again."}`);
     }
   }
   const textOf = (content) => (content?.parts || []).filter((p) => p.text && !p.thought).map((p) => p.text).join("").trim();
 
-  async function checkKey(key, model = "gemini-2.5-flash") {
-    const r = await gemini({ contents: [{ role: "user", parts: [{ text: "Reply with the single word OK." }] }], generationConfig: { maxOutputTokens: 20 } }, key, model);
-    return !!r;
+  // Checks the key works and returns the model that actually answered (it may have been switched).
+  async function checkKey(key, model = DEFAULT_MODEL) {
+    const r = await gemini({ contents: [{ role: "user", parts: [{ text: "Reply with the single word OK." }] }] }, key, model);
+    return r._model || model;
   }
 
   // short-term chat memory (kept on the phone)
@@ -429,7 +464,7 @@ How to behave:
   }
 
   return {
-    S, settings, NeedKey, checkKey, ask, simple, resetChat, stats,
+    S, settings, NeedKey, checkKey, availableModels, ask, simple, resetChat, stats,
     listKnowledge, learn, forgetLearned, listFacts, rememberFact, forgetFact,
     listReminders, cancelReminder, popDue, listNotes, expenseSummary,
     saveImage, saveDocument, briefing, review, exportAll, importAll,

@@ -370,19 +370,25 @@
     setup.classList.add("show");
   }
   $("#setupBtn").onclick = openSetup;
+  $("#sKey").addEventListener("change", async () => {
+    const key = $("#sKey").value.trim(); if (key.length < 20) return;
+    const names = (await Brain.availableModels(key)).filter((n) => /^gemini-[\d.]+-flash/.test(n) && !/(image|tts|live|audio|native|embedding)/.test(n));
+    if (names.length) $("#models").innerHTML = names.map((n) => `<option value="${esc(n)}">`).join("");
+  });
   setup.onclick = (e) => { if (e.target === setup && Brain.settings.key) setup.classList.remove("show"); };
   $("#setupForm").onsubmit = async (e) => {
     e.preventDefault();
     const name = $("#sName").value.trim(), about = $("#sAbout").value.trim(), key = $("#sKey").value.trim();
-    const model = $("#sModel").value.trim() || "gemini-2.5-flash", currency = $("#sCurrency").value.trim();
+    const model = $("#sModel").value.trim() || "gemini-3.8-flash", currency = $("#sCurrency").value.trim();
     const err = $("#setupErr");
     if (!name) { err.textContent = "Please enter your name."; return; }
     if (!key) { err.textContent = "Paste your Gemini key. Get it free at aistudio.google.com/apikey"; return; }
     const btn = $("#setupSave"); btn.disabled = true; btn.textContent = "Checking your key…"; err.textContent = "";
     try {
-      await Brain.checkKey(key, model);
+      const usable = await Brain.checkKey(key, model);
       const firstTime = !Brain.settings.name;
-      S.set("name", name); S.set("gemini_key", key); S.set("model", model); S.set("currency", currency || "৳");
+      S.set("name", name); S.set("gemini_key", key); S.set("model", usable);
+      if (usable !== model) toast(`Using ${usable}, the best model your key can use`); S.set("currency", currency || "৳");
       if (firstTime || name) await Brain.rememberFact(`Name is ${name}`);
       if (about) await Brain.rememberFact(about);
       $("#sAbout").value = "";

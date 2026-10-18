@@ -1,6 +1,6 @@
 // Makes the app installable and lets it open without internet.
 // Only the app's own files are cached; Gemini requests always go to Google.
-const CACHE = "second-brain-v2";
+const CACHE = "second-brain-v3";
 const SHELL = ["./", "./index.html", "./app.js", "./brain.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
